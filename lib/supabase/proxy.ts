@@ -1,12 +1,14 @@
 import { createServerClient } from '@supabase/ssr';
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
+
+import { getSupabasePublicConfig } from '@/lib/supabase/client';
 
 export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({ request });
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  const { url, publishableKey } = getSupabasePublicConfig();
 
-  if (!url || !publishableKey) return response;
+  let response = NextResponse.next({
+    request,
+  });
 
   const supabase = createServerClient(url, publishableKey, {
     cookies: {
@@ -14,13 +16,15 @@ export async function updateSession(request: NextRequest) {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value));
-        response = NextResponse.next({ request });
-        cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+        cookiesToSet.forEach(({ name, value, options }) => {
+          request.cookies.set(name, value);
+          response.cookies.set(name, value, options);
+        });
       },
     },
   });
 
-  await supabase.auth.getClaims();
+  await supabase.auth.getUser();
+
   return response;
 }
