@@ -1,0 +1,3 @@
+# Optional reference file for local Supabase CLI development.
+# The hosted production setup in SUPABASE_SETUP.md does not require this file.
+project_id = "your-project-ref"
